@@ -1,0 +1,62 @@
+<script type="text/ng-template" id="concat_nodes.html">
+<div ui-tree-handle class="tree-node">
+    <div class="tree-node-content">
+        <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)">
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span>
+        </a>
+        {$ node.name $}
+    </div>
+</div>
+</script>
+
+<script type="text/ng-template" id="concat_nodes2.html">
+<div ui-tree-handle class="tree-node">
+    <div class="tree-node-content">
+        <a class="btn btn-success btn-xs" data-nodrag ng-click="toggle(this)">
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-right': collapsed, 'glyphicon-chevron-down': !collapsed}"></span>
+        </a>
+        {$ node.name $}
+    </div>
+</div>
+</script>
+
+<div class="modal-body no_bottom_padding">
+
+    <!-- concatenation preview -->
+    <h3>Preview</h3>
+    <div class="row concat-preview well">
+        <div>
+            <span ng-repeat="c in concat_columns">{$ c.raw_data[0] $} </span>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- These are all columns -->
+        <div class="col-sm-6">
+            <h3>All Raw Column Headers</h3>
+            <div ui-tree id="raw-columns-tree" class="angular-ui-tree">
+                <ol ui-tree-nodes ng-model="raw_columns" class="ng-pristine ng-valid angular-ui-tree-nodes">
+                    <li ng-repeat="node in raw_columns" ui-tree-node ng-include="'concat_nodes.html'" class="angular-ui-tree-node"></li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- These are the concatenated columns -->
+        <div class="col-sm-6">
+            <h3>Selected for Concatenation</h3>
+            <div ui-tree id="concat-columns-tree" class="angular-ui-tree">
+                <ol ui-tree-nodes="" ng-model="concat_columns" class="ng-prestine ng-valid angular-ui-tree-nodes">
+                    <li ng-repeat="node in concat_columns" ui-tree-node ng-include="'concat_nodes2.html'" class="angular-ui-tree-node"></li>
+                </ol>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-default" ng-click="close_concat_modal()">Cancel</button>
+        <button type="button" class="btn btn-primary" ng-click="save_concat()" ng-disabled="concat_columns === undefined || concat_columns.length < 2">Save Concatenation</button>
+    </div>
+
+
+</div>

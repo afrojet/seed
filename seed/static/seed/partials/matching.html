@@ -1,0 +1,62 @@
+<div class="page_header_container">
+    <div class="page_header">
+        <div class="left page_action_container">
+            <a class="page_action" ng-href="#/data/{$ import_file.dataset.id $}"><i class="fa fa-chevron-left"></i> {$ import_file.dataset.name $}</a>
+        </div>
+        <div class="page_title">
+            <h1>Data Matching ({$ import_file.dataset.name $})</h1>
+        </div>
+        <div class="right page_action_container"></div>
+    </div>
+</div>
+
+<div class="section" ng-cloak>
+
+    <alert ng-repeat="alert in alerts" type="alert.type" close="closeAlert($index)">{$ alert.msg $}</alert>
+
+	<!--
+<div class="section_tab_container">
+	  <tabset>
+	    <tab heading="Matching Instructions">
+	    	<div class="row">
+	    		<div class="col-lg-7 col-sm-7 tab_content wide">
+	    		<p><strong>HOW TO MATCH YOUR DATA:</strong></p>
+	    		<p>Here we will talk about the glories of matching, how it builds canonical buildings and how rad it is.</p>
+				</div>
+	    	</div>
+	    </tab>
+	    <tab heading="SEED Header Definitions" active="tab.active" disabled="tab.disabled">
+	      <div class="tab_content wide">
+	      	<p><strong>PM Property ID:</strong> In the mapping step you teach the SEED software how to best organize your building data.</p>
+	      	<p><strong>Property Name:</strong> For each row in the table below select a SEED header that best matches the header of the buildings list file you uploaded.</p>
+	      	<p><strong>Property Notes:</strong> The Confidence column displays SEED's confidence in its ability (low, med, high) to map the data on its own.</p>
+	      	<p><strong>Tax Lot Id:</strong>	If you don't see a good mapping between your data and SEED, you can choose to have SEED ignore the data by unselecting the checkbox for that particular row of data.</p>
+	      
+	      </div>
+	    </tab>
+	    <tab class="pull-right" heading="Collapse Tabs"></tab>
+	  </tabset>
+	</div>
+-->
+	<div class="section_header_container has_no_border">
+        <div class="section_header fixed_height">
+            <div class="left section_action_container row matching_toggle">
+            	<div class="col-sm-2" ng-hide="show_building_list">
+	            <button type="button" class="btn btn-primary btn-sm" ng-disabled="duplicates_present()" ng-click="back_to_list()"><i class="fa fa-chevron-left"></i>Back to List</button>
+            	</div>
+            </div>
+            <div class="right section_action_container section_action_btn">
+            	<button type="button" class="btn btn-default btn-sm" ng-click="open_edit_columns_modal()"><i class="fa fa-columns"></i>Edit Columns</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- matching list contanier -->
+    <ng-include src="urls.static_url + 'seed/partials/matching_list_table.html'" ng-show="show_building_list">
+    </ng-include>
+    
+    <!-- matching detail contanier -->
+    <ng-include src="urls.static_url + 'seed/partials/matching_detail_table.html'" ng-hide="show_building_list">
+        <!-- matching detail table loads here -->
+    </ng-include>
+</div>

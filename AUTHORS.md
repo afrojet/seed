@@ -1,0 +1,7 @@
+- Aleck Landgraf (https://github.com/alecklandgraf/)
+- Gavin McQuillan (https://github.com/gmcquillan)
+- John Skelton (https://github.com/afrojet)
+- Sam Thompson (https://github.com/georgedorn)
+- Ubuntu (aka Aaron Krill) (https://github.com/krillr)
+- Erik Larson (erik.larson@buildingenergy.com)
+- D. Magnus Cheifetz (d.magnus.cheifetz@buildingenergy.com)

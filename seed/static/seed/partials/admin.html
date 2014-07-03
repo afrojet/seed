@@ -1,0 +1,62 @@
+    <div class="alert {{alert.css}}" ng-show="alert.show">
+        <button type="button" class="close" ng-click="alert.show = false">&times;</button>
+        {$ alert.message $}
+    </div>
+    <div class="org_admin">
+        <div>
+            <h2>Create an organizaition</h2>
+            <form  name="orgForm" novalidate class="css-form">
+                Organization Name:
+                <input type="text" ng-model="org.name" required /><br />
+                User E-mail: <select name="user_emails" id="user_emails" ng-options="u as u.email for u in org.users" ng-model="org.email" >
+                    </select>
+                <button class="btn btn-default" type="button" ng-click="org_form.reset()">Reset</button>
+                <button class="btn btn-default" ng-click="org_form.add(org)"
+                ng-disabled="orgForm.$invalid || org_form.not_ready()">Create</button>
+            </form>
+            <div ng-show="org_form.invalid">Error:
+              <span>{$ org_form.message $}</span>
+            </div>
+        </div>
+    </div>
+    <div class="user_admin">
+        <div>
+            <h2>Create a user</h2>
+            <form name="userForm" novalidate class="css-form">
+                User First Name:
+                <input type="text" ng-model="user.first_name" required /><br />
+                User First Name:
+                <input type="text" ng-model="user.last_name" required /><br />
+                User E-mail: <input type="email" ng-model="user.email" required /><br />
+                <button class="btn btn-default" ng-click="user_form.reset()">Reset</button>
+                <button class="btn btn-default" ng-click="user_form.add(user)"
+                ng-disabled="userForm.$invalid">Create</button>
+            </form>
+            <div ng-show="user_form.invalid">Error:
+                <span>{$ user_form.message $}</span>
+            </div>
+        </div>
+    </div>
+<div class="org_user_admin">
+    <div>
+        <h2>Add/Remove a user to an organization</h2>
+        Organizations: <select name="orgs" id="orgs" ng-options="o as o.name for o in org_user.organizations" ng-model="org_user.organization" ng-change="get_organizations_users(org_user.organization)"></select>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th></th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="user in org_user.users">
+                    <td>{$ user.email $}</td>
+                    <td><button class="btn btn-default" ng-click="org_user.remove_user(user.user_id, org_user.organization.org_id)">Remove User</button></td>
+                </tr>
+            </tbody>
+        </table>
+        Add user to organization: <select name="user_emails" id="user_emails" ng-options="u as u.email for u in org.users" ng-model="org_user.user" ></select>
+        <button class="btn btn-default" ng-click="org_user.add()">Add user</button>
+    </div>
+</div>

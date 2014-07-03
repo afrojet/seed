@@ -1,0 +1,86 @@
+<div class="page_header_container">
+    <div class="page_header">
+        <div class="left page_action_container">
+			<a href="#/accounts" class="page_action"><i class="fa fa-chevron-left"></i> Organizations</a>
+          
+        </div>
+        <div class="page_title">
+            <h1>{$ org.name $}</h1>
+        </div>
+        <div class="right page_action_container">
+        </div>
+    </div>
+</div>
+<div class="section_nav_container">
+	<div class="section_nav">
+		<a ng-href="#/accounts/{$ org.id $}" class="active">Settings</a><a ng-href="#/accounts/{$ org.id $}/sub_org" ng-if="org.is_parent && auth.requires_owner">Sub-Organizations</a><a ng-href="#/accounts/{$ org.id $}/members">Members</a>
+	</div>
+</div>
+<div class="section">
+    <div class="section_header_container">
+        <div class="section_header">
+            <h2><i class="fa fa-cogs"></i> Settings</h2>
+        </div>
+    </div>
+    <div class="section_content_container">
+        <div class="section_content with_padding">
+        	<h3>Organization Name</h3>
+        	<form class="form-horizontal" role="form">
+        		<div class="form-group">
+        			<div class="col-sm-4">
+        			<input type="text" class="form-control" id="editOrganizationName" ng-model="org.name" ng-disabled="!auth.requires_owner">
+        			</div>
+        		</div>
+        	</form>
+            <div ng-if="org.is_parent && auth.requires_owner">
+            	<h3>Query Threshold</h3>
+            	<p>Select the minimum threshold count of buildings that can be returned in a shared query. The building count threshold is important for allowing other organizations to perform statistical analysis on your data without revealing information about individual buildings.</p>
+                <form class="form-horizontal" role="form">
+            		<div class="form-group">
+            			<div class="col-sm-2">
+            			<input type="number" class="form-control" id="editQueryThreshold" placeholder="Count #" ng-model="org.query_threshold" min="0">
+            			</div>
+            		</div>
+            	</form>
+                <h3>Data Visibility</h3>
+                <p>All fields selected from the list below will be viewable by other organizations that you've agreed to share data with. The field visibility you set here will be inherited by all sub organizations you create.</p>
+            </div>
+        </div>
+		<div class="section_content" ng-if="org.is_parent && auth.requires_owner">
+        	<div class="table_list_container">
+                <table class="table table-striped table_highlight_first">
+                	<thead>
+                        <tr>
+                            <th class="check is_aligned_center"><input type="checkbox" ng-model="select_all" ng-change="select_all_clicked()"></th>
+                            <th>Field Name</th>
+                        </tr>
+                        <tr class="sub_head">
+                        	<th class="sub_head check_row"></th>
+                        	<th class="sub_head">
+								<input type="text" class="form-control input-sm" ng-model="filter_params.title" placeholder="Search field name" ng-class="{active: filter_params.title.length > 0}">
+                        	</th>
+                        </tr>
+                	</thead>
+                	<tbody>
+                		<tr ng-repeat="field in fields | filter:filter_params:strict">
+	                		<td class="check is_aligned_center" style="width: 5%; min-width: 30px;">
+								<input type="checkbox" ng-model="field.checked">
+							</td>
+							<td>
+								<span>{$ field.title $}</span>
+							</td>
+                		</tr>
+                	</tbody>
+                </table>
+        	</div>
+        </div>
+    <div class="section_bottom_container" ng-if="auth.requires_owner">
+		<div class="col-lg-6 col-sm-6">
+			<button type="button" class="pull-left btn btn-primary" ng-click="save_settings()">Save Settings</button>
+		</div>
+		<div class="col-lg-6 col-sm-6">
+			
+		</div>
+	</div>
+
+</div>

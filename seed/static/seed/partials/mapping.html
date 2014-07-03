@@ -1,0 +1,287 @@
+<div class="page_header_container">
+    <div class="page_header">
+        <div class="left page_action_container">
+            <a class="page_action" ng-href="#/data/{$ import_file.dataset.id $}"><i class="fa fa-chevron-left"></i> {$ import_file.dataset.name $}</a>
+
+        </div>
+        <div class="page_title">
+            <h1>Data Mapping &amp; Validation ({$ import_file.name $})</h1>
+        </div>
+        <div class="right page_action_container"></div>
+    </div>
+</div>
+
+<div class="section">
+	<div class="section_tab_container">
+	  <tabset>
+	    <tab heading="STEP 1: Map Your Data" active="tabs.one_active">
+	    	<div class="row">
+	    		<div class="col-lg-7 col-sm-7 tab_content wide">
+	    		<p><strong>MAPPING YOUR DATA TO SEED</strong></p>
+	    		<p>For each row in the table below select a SEED header that best maps to the header of the file you uploaded. SEED will then attempt to map this row of data and surface any validation errors it finds. The 'map' column indicates if a successful mapping was created and whether your data has validation errors or not.</p>
+				</div>
+				<div class="col-lg-5 col-sm-5 key tab_content wide">
+		    		<p><strong>MAPPING KEY:</strong></p>
+		    		<p><i class="fa fa-check-circle green"></i> = data mapping successful.</p>
+					<p><i class="fa fa-check-circle yellow"></i> = data mapping successful but some data is not valid.</p>
+					<p><i class="fa fa-exclamation-triangle red"></i> = data mapping unsuccessful or a duplicate.</p>
+				</div>
+	    	</div>
+	    </tab>
+	    <tab heading="STEP 2: Review Your Data Mappings" active="tabs.two_active">
+	    	<div class="row">
+	    		<div class="col-lg-7 col-sm-7 tab_content wide">
+	    			<p><strong>REVIEW YOUR DATA MAPPINGS (Data holding pen)</strong></p>
+	    			<p>Do the selected SEED headers map correctly to the data from your columns? If not, go back to mapping and edit your selections. It's important at this step that you are confident in your mapping decisions. When you move onto the next step: 'Data Matching', the buildings from this data set will be available in your buildings list but you will no longer be able to edit the data mappings.</p>
+	    		</div>
+	    		<div class="col-lg-5 col-sm-5 key tab_content wide">
+	    			<p class="tip"><strong>EDIT COLUMNS</strong></p>
+	    			<p>You can customize the columns displayed in the table below by clicking the 'Edit Columns' button and then selecting the column headers you want to review from the modal window.</p>
+	    		</div>
+	    	</div>
+	    </tab>
+	    <tab heading="Help: SEED Header Definitions" active="tabs.three_active">
+	      <div class="row">
+		      <div class="tab_content wide">
+		      	<div class="table_header_persistant">
+			      	<table class="table">
+			      		<thead>
+							<tr>
+								<th width="20%">SEED HEADER</th>
+								<th width="80%">DEFINITION</th>
+							</tr>
+						</thead>
+			      	</table>
+		      	</div>
+		      	<div class="table_body_persistant">
+                    <table class="table table-striped" >
+						<tbody >
+							<tr>
+                                <td width="20%">Tax Lot ID</td>
+                                <td width="80%">Tax lot ID is a unique identifier assigned to the lot, parcel or property by the Tax Assessor Office.</td>
+	                        </tr>
+	                        <tr>
+                                <td>PM Property ID</td>
+                                <td>A unique ID assigned by EPA Portfolio Manager to each property. A property can be a portion of a building, a single building, or a campus of buildings.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Custom ID 1</td>
+                                <td>Typically a unique number assigned by the SEED user that is based on the Property ID with an added suffix at the end to identify the multiple buildings associated with one property. </td>
+	                        </tr>
+	                        <tr>
+                                <td>Property Name</td>
+                                <td>A unique name associated with the property or building (example: The Grand Hotel).</td>
+	                        </tr>
+	                        <tr>
+                                <td>Building Count</td>
+                                <td>The number of buildings or facilities located on the Tax Lot or parcel.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Property Notes</td>
+                                <td>A field available in Portfolio Manager, sometimes used as an auxiliary unique number to identify a building or property.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Year Built</td>
+                                <td>Year in which construction was completed.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Recent Sale Date</td>
+                                <td>Lists the date (month/day/year) of the building or property most recent sale date.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Owner</td>
+                                <td>Entity that owns the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Owner Email</td>
+                                <td>Email address for the entity that owns the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Owner Telephone</td>
+                                <td>Phone number for the entity that owns the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Address Line 1</td>
+                                <td>Street Address or other address field.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Address Line 2</td>
+                                <td>Street Address or other address field.</td>
+	                        </tr>
+	                        <tr>
+                                <td>City</td>
+                                <td>The city in which the building is located.</td>
+	                        </tr>
+	                        <tr>
+                                <td>State/Province</td>
+                                <td>The state in which the building is located.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Postal Code</td>
+                                <td>The postal code in which the building is located.</td>
+	                        </tr>
+	                        <tr>
+                                <td>County/Ward/Borough</td>
+                                <td>The administrative division of a region in which a building is located.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Gross Floor Area</td>
+                                <td>Total floor area (excluding parking) of all floors of a building calculated.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Conditioned Floor Area</td>
+                                <td>The floor area of a building that is heated or cooled.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Occupied Floor Area</td>
+                                <td>The floor area of a building that is currently occupied or assigned.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Energy Alerts</td>
+                                <td>Portfolio Manager generated alerts relating to energy use.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Space Alerts</td>
+                                <td>Portfolio Manager generated alerts that space types within the same building are incompatible.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Source EUI</td>
+                                <td>An estimate of the energy that was required to generate, transmit and deliver the energy to the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Source EUI Weather Normalized</td>
+                                <td>An estimate, normalized for weather, of the energy that was required to generate, transmit and deliver the energy to the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Site EUI</td>
+                                <td>The sum of the annual electricity and fuel energy delivered to the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Site EUI Weather Normalized</td>
+                                <td>The sum of the annual electricity and fuel energy, normalized for weather, delivered to the building.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Energy Score</td>
+                                <td>Portfolio Manager generated score, which compares the building to similar buildings nationwide.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Building Certification</td>
+                                <td>The third party building certification type that a building has completed.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Generation Date</td>
+                                <td>The date on which a data set was generated.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Release Date</td>
+                                <td>The date on which a data set was released.</td>
+	                        </tr>
+	                        <tr>
+                                <td>Year Ending</td>
+                                <td>The year for which a complete twelve months of energy data was recorded.</td>
+	                        </tr>
+						</tbody>
+					</table>
+		      	</div>
+		      </div>
+	      </div>
+	    </tab>
+	    <tab class="pull-right" heading="Collapse Tabs"></tab>
+	  </tabset>
+	</div>
+
+	<div class="section_header_container has_no_border" ng-hide="review_mappings">
+        <div class="section_header fixed_height">
+            <div class="left section_action_container"></div>
+            <div class="right section_action_container section_action_btn">
+                <button type="button" class="pull-right btn btn-primary" ng-disabled="duplicates_present()" ng-click="remap_buildings()" ng-hide="import_file.matching_done">Map Your Data</button>
+                <button type="button" class="pull-right btn btn-default" ng-click="get_mapped_buildings()" ng-show="import_file.matching_done">Review Mapped Data</button>
+            </div>
+        </div>
+    </div>
+    <div class="section_content_container">
+        <div class="section_content">
+            <div class="table_list_container mapping" ng-cloak>
+                <div class="alert warning file_error_messages" ng-show="has_mapping_error_messages()" ng-bind-html="mapping_error_messages"></div>
+                <table class="table table-striped" ng-hide="review_mappings">
+                    <thead>
+                        <tr>
+                            <th class="source_data">SEED</th>
+                            <th class="source_data blank"></th>
+                            <th colspan="99" class="source_data" colspan="4">{$ import_file.name $}</th>
+                        </tr>
+                        <tr>
+                            <th class="mapping_field">header</th>
+                            <th class="sub_head is_aligned_center">Map</th>
+                            <th class="import_column_name"> header</th>
+                            <th>Row 1</th>
+                            <th>Row 2</th>
+                            <th>Row 3</th>
+                            <th>Row 4</th>
+                            <th>Row 5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="tcm in raw_columns" ng-class="{'ignored_row': tcm.suggestion == ''}">
+                            <td ng-class="{'danger': tcm.is_duplicate == true}">
+                                <select class="form-control input-sm tcm_field" ng-options="sug|titleCase|district|ignoremap for sug in tcm.building_columns | orderBy:'toString()'" ng-model="tcm.suggestion" ng-change="change(tcm)" ng-disabled="import_file.matching_done">
+                                </select>
+                            </td>
+                            <td class="is_aligned_center">
+                                <i class="fa fa-exclamation-triangle red" ng-show="tcm.is_duplicate == true"></i>
+                                <i class="fa fa-check-circle green" ng-show="tcm.validity == 'valid' && tcm.is_duplicate != true"></i>
+                                <i class="fa fa-check-circle yellow" ng-show="tcm.validity == 'semivalid' && tcm.is_duplicate != true"></i>
+                                <i class="fa fa-exclamation-triangle red" ng-show="tcm.validity == 'invalid' && tcm.is_duplicate != true"></i>
+                            </td>
+                            <td>
+                                <strong>{$tcm.name$}</strong>
+                            </td>
+                            <td ng-repeat="cell_value in tcm.raw_data track by $index" ng-class="{'danger': set_td_class(tcm, cell_value) == 'danger', 'warning': set_td_class(tcm, cell_value) == 'warning', 'success': set_td_class(tcm, cell_value) == 'success'}" >
+                                {$ cell_value $}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section_content_container" ng-show="save_mappings">
+        <div class="section_content">
+            <div class="progress_bar_container progressbar_fill_area">
+                <div class="progress_bar_copy_top">Mapping buildings for <strong>{$ import_file.name $}</strong></div>
+                <progressbar class="progress-striped active" value="import_file.progress" type="success"></progressbar>
+                <div class="progress_bar_copy_bottom">{$ import_file.progress | number:0 $}% Complete</div>
+            </div>
+        </div>
+    </div>
+    <div class="section_header_container" ng-show="show_mapped_buildings">
+        <div class="section_header fixed_height">
+            <div class="left section_action_container">
+	            <button type="button" class="btn btn-primary" ng-click="review_mappings=false; show_mapped_buildings=false"><i class="fa fa-chevron-left"></i> Back to Mapping</button>
+            </div>
+            <div class="right_wide section_action_container section_action_btn">
+            	<button type="button" class="btn btn-default" ng-click="open_edit_columns_modal()"><i class="fa fa-columns"></i>Edit Columns</button>
+            	<a ng-href="#/data/mapping/{$ import_file.id $}"><button type="button" class="pull-right btn btn-primary" ng-click="open_data_upload_modal(import_file.dataset)" ng-hide="import_file.matching_done">Save Mappings</button></a>
+            </div>
+        </div>
+    </div>
+    <div class="section_content_container" ng-show="show_mapped_buildings">
+        <div class="section_content">
+                <ng-include src="urls.static_url + 'seed/partials/buildings_table.html'">
+        </div>
+    </div>
+    <div class="section_bottom_container">
+		<div class="col-lg-6 col-sm-6">
+			<button type="button" class="btn btn-primary" ng-click="open_concat_modal(building_column_types, raw_columns)" ng-hide="show_mapped_buildings">Concatenate Columns</button>
+			<button type="button" class="btn btn-primary" ng-click="review_mappings=false; show_mapped_buildings=false" ng-show="show_mapped_buildings"><i class="fa fa-chevron-left"></i> Back to Mapping</button>
+		</div>
+		<div class="col-lg-6 col-sm-6" ng-hide="review_mappings">
+	            <button type="button" class="pull-right btn btn-primary" ng-disabled="duplicates_present()" ng-click="remap_buildings()" ng-hide="import_file.matching_done">Map Your Data</button>
+	            <button type="button" class="pull-right btn btn-default" ng-click="get_mapped_buildings()" ng-show="import_file.matching_done">Review Mapped Data</button>
+		</div>
+		<div class="col-lg-6 col-sm-6" ng-show="show_mapped_buildings">
+			<a ng-href="#/data/mapping/{$ import_file.id $}"><button type="button" class="pull-right btn btn-primary" ng-click="open_data_upload_modal(import_file.dataset)" ng-hide="import_file.matching_done">Save Mappings</button></a>
+		</div>
+</div>
+</div>

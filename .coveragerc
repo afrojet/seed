@@ -1,0 +1,3 @@
+[run]
+include = ./seed/*
+omit = ./seed/migrations/*
