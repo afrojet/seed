@@ -26,7 +26,7 @@ djorm-ext-expressions==0.6
 -e hg+https://bitbucket.org/david/django-storages@e27c8b61ab57e5afaf21cccfee005c980d89480f#egg=django_storages
 -e git+https://github.com/wellfire/django-organizations.git@f9da9778c212b253ebda49453cc57fe199020f51#egg=django_organizations
 -e git+https://github.com/buildingenergy/python-dateutil.git@478b5799756a40a1f57a9a8b49a82f0c1e269165#egg=python-dateutil
--e git+https://754ede720243f66e532e0fda8cef2f26aa12c40b@github.com/buildingenergy/superperms.git@f2431a0e7724af23deebe2c44463e4f0570aa2e0#egg=superperms
+-e git+https://github.com/buildingenergy/superperms.git@f2431a0e7724af23deebe2c44463e4f0570aa2e0#egg=superperms
 nose-exclude==0.2.0
 flake8==2.2.0
 flower==0.6.0
