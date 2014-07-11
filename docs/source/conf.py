@@ -260,7 +260,7 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 # formatters for API autodocumentation
-from seed.utils import get_api_endpoints
+from seed.utils.api import get_api_endpoints
 api_endpoints = get_api_endpoints()
 
 endpoints_by_function = {fn.func_name: url
