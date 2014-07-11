@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 describe("controller: members_controller", function(){
     // globals set up and used in each test scenario

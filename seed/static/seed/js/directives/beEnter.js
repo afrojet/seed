@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 /**
  * directive be-enter used for search input to only fire on 'enter' or 'return'

@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 describe("controller: seed_admin_controller", function(){
     var mock_organization_service;
@@ -13,7 +13,8 @@ describe("controller: seed_admin_controller", function(){
         $controller('seed_admin_controller', {
             $scope: this.scope,
             user_service: user_service,
-            organization_service: organization_service
+            organization_service: organization_service,
+            user_profile_payload: {user: first_name: "b", last_name: "d"}
         });
 
         mock_organization_service = organization_service;

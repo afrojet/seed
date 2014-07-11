@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from django.core.files.storage import get_storage_class
 from storages.backends.s3boto import S3BotoStorage

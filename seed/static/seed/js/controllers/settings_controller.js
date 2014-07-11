@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 angular.module('BE.seed.controller.organization_settings', [])
 .controller('settings_controller', [
@@ -54,6 +54,7 @@ angular.module('BE.seed.controller.organization_settings', [])
         $scope.org.fields = fields;
         organization_service.save_org_settings($scope.org).then(function (data){
             // resolve promise
+            $scope.settings_updated = true;
         }, function (data, status) {
             // reject promise
             $scope.$emit('app_error', data);

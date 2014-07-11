@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 // taken from the angularjs testing page
 // http://docs.angularjs.org/guide/dev_guide.unit-testing

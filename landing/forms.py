@@ -1,9 +1,12 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.forms import SetPasswordForm
+
+from passwords.fields import PasswordField
 
 
 class LoginForm(forms.Form):
@@ -20,4 +23,14 @@ class LoginForm(forms.Form):
             attrs={'class': 'field', 'placeholder': 'Password'}
         ),
         required=True
+    )
+
+
+class SetStrongPasswordForm(SetPasswordForm):
+    """
+    The Django SetPasswordForm with django-passwords PasswordField
+    """
+    new_password2 = PasswordField(
+        label=_("New password confirmation"),
+        widget=forms.PasswordInput
     )

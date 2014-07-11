@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # system imports
 import json
@@ -29,7 +29,8 @@ from seed.models import (
     StatusLabel,
 )
 
-from .. import utils
+from ..utils import projects as utils
+from ..utils.time import convert_to_js_timestamp
 
 
 DEFAULT_CUSTOM_COLUMNS = [
@@ -73,9 +74,9 @@ def get_projects(request):
         }
         if p.has_compliance:
             compliance = p.get_compliance()
-            p_as_json['end_date'] = utils.convert_to_js_timestamp(
+            p_as_json['end_date'] = convert_to_js_timestamp(
                 compliance.end_date)
-            p_as_json['deadline_date'] = utils.convert_to_js_timestamp(
+            p_as_json['deadline_date'] = convert_to_js_timestamp(
                 compliance.deadline_date)
             p_as_json['compliance_type'] = compliance.compliance_type
         projects.append(p_as_json)
@@ -97,8 +98,8 @@ def get_project(request):
     project_dict['is_compliance'] = project.has_compliance
     if project_dict['is_compliance']:
         c = project.get_compliance()
-        project_dict['end_date'] = utils.convert_to_js_timestamp(c.end_date)
-        project_dict['deadline_date'] = utils.convert_to_js_timestamp(
+        project_dict['end_date'] = convert_to_js_timestamp(c.end_date)
+        project_dict['deadline_date'] = convert_to_js_timestamp(
             c.deadline_date)
         project_dict['compliance_type'] = c.compliance_type
     del(project_dict['_state'])

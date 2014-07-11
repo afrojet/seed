@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 """
 This should be excuted after S3 bucket and CORS are set as last step and called in post_compile script. 

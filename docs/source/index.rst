@@ -9,6 +9,7 @@ Getting Started:
    :maxdepth: 2
     
    install
+   api
    license
    help
 

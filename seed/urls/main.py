@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 #!/usr/bin/env python
 # encoding: utf-8
@@ -16,7 +16,6 @@ urlpatterns = patterns(
     'seed.views.main',
     # template routes
     url(r'^$', 'home', name='home'),
-    url(r'^admin/$', 'admin', name='admin'),
 
     # ajax routes
     url(

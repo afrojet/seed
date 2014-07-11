@@ -1,11 +1,12 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from functools import wraps
 
 from django.core.cache import cache
 
+from landing.models import SEEDUser as User
 
 SEED_CACHE_PREFIX = 'SEED:{0}'
 LOCK_CACHE_PREFIX = SEED_CACHE_PREFIX + ':LOCK'
@@ -68,5 +69,35 @@ def lock_and_track(fn, *args, **kwargs):
             response['progress_key'] = prog_key
 
         return response
+
+    return _wrapped
+
+endpoints = []
+
+
+def api_endpoint(fn):
+    """
+    Decorator function to mark a view as allowed to authenticate via API key.
+
+    Decorator must be used before login_required or has_perm to set
+    request.user for those decorators.
+    """
+    #mark this function as an api endpoint for get_api_endpoints to find
+    fn.is_api_endpoint = True
+    global endpoints
+    endpoints.append(fn)
+
+    @wraps(fn)
+    def _wrapped(request, *args, **kwargs):
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if auth_header:
+            try:
+                username, api_key = auth_header.split(':')
+                request.user = User.objects.get(api_key=api_key,
+                                                username=username)
+            except (ValueError, User.DoesNotExist):
+                pass
+
+        return fn(request, *args, **kwargs)
 
     return _wrapped

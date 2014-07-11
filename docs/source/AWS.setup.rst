@@ -177,8 +177,8 @@ create a superuser
 
 .. note:: 
 
-    Every user must be tied to an organization, visit ``/app/admin`` as
-    the superuser to create parent organizations and add users to them.
+    Every user must be tied to an organization, visit ``/app/#/profile/admin``
+    as the superuser to create parent organizations and add users to them.
 
 
 

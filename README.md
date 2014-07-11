@@ -133,8 +133,8 @@ If running on AWS, the `bin/start_flower.sh` will start flower on port `8080` an
 
 
 ### dev setup:
-* `git clone git@github.com:buildingenergy/seed-core.git`
-* install Postgres 9.3 and memcached or redis for cache
+* `git clone git@github.com:buildingenergy/seed.git`
+* install Postgres 9.3 and redis for cache and message broker
 * use a virtualenv if desired
 * create a `local_untracked.py` in the `BE/settings` folder and add CACHE and DB config (example `local_untracked.py.dist`)
 * `export DJANGO_SETTINGS_MODULE=BE.settings.dev`
@@ -143,9 +143,11 @@ If running on AWS, the `bin/start_flower.sh` will start flower on port `8080` an
 * `./manage migrate`
 * `./manage createsuperuser`
 * `./manage runserver`
-* navaigate to `127.0.0.1:8000/app/admin` in your browser to create a user and org
+* `./manage celeryd`
+* navaigate to `http://127.0.0.1:8000/app/#/profile/admin` in your browser to add users to organizations
+    * each user must belong to an organization!
 * main app runs at `127.0.0.1:8000/app`
 
 
 ### license:
-licensed under BSD 3-clause [license](LICENSE)
+see [license](LICENSE)

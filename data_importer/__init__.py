@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 ##### monkey-patch to suppress threading error message in python 2.7.3
 ##### See http://stackoverflow.com/questions/13193278/understand-python-threading-bug

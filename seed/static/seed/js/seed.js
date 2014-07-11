@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 /**
  * AngularJS app 'BE.seed' for SEED SPA
@@ -25,6 +25,7 @@ angular.module('BE.seed.controllers', [
     'BE.seed.controller.data_upload_modal',
     'BE.seed.controller.dataset',
     'BE.seed.controller.dataset_detail',
+    'BE.seed.controller.developer',
     'BE.seed.controller.edit_label_modal',
     'BE.seed.controller.edit_project_modal',
     'BE.seed.controller.existing_members_modal',
@@ -35,9 +36,11 @@ angular.module('BE.seed.controllers', [
     'BE.seed.controller.members',
     'BE.seed.controller.menu',
     'BE.seed.controller.new_member_modal',
+    'BE.seed.controller.profile',
     'BE.seed.controller.organization',
     'BE.seed.controller.organization_settings',
-    'BE.seed.controller.project'
+    'BE.seed.controller.project',
+    'BE.seed.controller.security'
     ]);
 angular.module('BE.seed.filters', [
     'district',
@@ -105,6 +108,67 @@ SEED_app.config(['$routeProvider', function ($routeProvider) {
     $routeProvider
         .when('/', {
             templateUrl: static_url + 'seed/partials/home.html'
+        })
+        .when('/profile', {
+            templateUrl: static_url + 'seed/partials/profile.html',
+            controller: 'profile_controller',
+            resolve: {
+                'auth_payload': ['auth_service', '$q', 'user_service', function(auth_service, $q, user_service) {
+                    var organization_id = user_service.get_organization().id;
+                    return auth_service.is_authorized(organization_id, ['requires_superuser']);
+                }],
+                'user_profile_payload': ['user_service', function (user_service) {
+                    return user_service.get_user_profile();
+                }]
+            }
+        })
+        .when('/profile/security', {
+            templateUrl: static_url + 'seed/partials/security.html',
+            controller: 'security_controller',
+            resolve: {
+                'auth_payload': ['auth_service', '$q', 'user_service', function(auth_service, $q, user_service) {
+                    var organization_id = user_service.get_organization().id;
+                    return auth_service.is_authorized(organization_id, ['requires_superuser']);
+                }],
+                'user_profile_payload': ['user_service', function (user_service) {
+                    return user_service.get_user_profile();
+                }]
+            }
+        })
+        .when('/profile/developer', {
+            templateUrl: static_url + 'seed/partials/developer.html',
+            controller: 'developer_controller',
+            resolve: {
+                'auth_payload': ['auth_service', '$q', 'user_service', function(auth_service, $q, user_service) {
+                    var organization_id = user_service.get_organization().id;
+                    return auth_service.is_authorized(organization_id, ['requires_superuser']);
+                }],
+                'user_profile_payload': ['user_service', function (user_service) {
+                    return user_service.get_user_profile();
+                }]
+            }
+        })
+        .when('/profile/admin', {
+            templateUrl: static_url + 'seed/partials/admin.html',
+            controller: 'seed_admin_controller',
+            resolve: {
+                'auth_payload': ['auth_service', '$q', 'user_service', function(auth_service, $q, user_service) {
+                    var organization_id = user_service.get_organization().id;
+                    return auth_service.is_authorized(organization_id, ['requires_superuser'])
+                    .then(function (data) {
+                        if (data.auth.requires_superuser){
+                            return data;
+                        } else {
+                            return $q.reject("not authorized");
+                        }
+                    }, function (data) {
+                        return $q.reject(data.message);
+                    });
+                }],
+                'user_profile_payload': ['user_service', function (user_service) {
+                    return user_service.get_user_profile();
+                }]
+            }
         })
         .when('/projects', {
             controller: 'project_list_controller',

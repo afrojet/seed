@@ -1,15 +1,16 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 #
 ## Utilities for testing SEED modules.
 ###
 
+import json
+
 from seed.models import(
     ASSESSED_RAW,
     BuildingSnapshot,
-    COMPOSITE_BS,
     CanonicalBuilding,
     ColumnMapping,
     set_initial_sources,
@@ -24,7 +25,7 @@ def make_fake_mappings(mappings, org, source_type=ASSESSED_RAW):
             source_type=source_type,
             column_raw=raw,
             column_mapped=mapped
-    )
+        )
 
 
 def make_fake_snapshot(import_file, init_data, bs_type, is_canon=False):
@@ -51,12 +52,20 @@ def make_fake_snapshot(import_file, init_data, bs_type, is_canon=False):
 class FakeRequest(object):
     """A simple request stub."""
     __name__ = 'FakeRequest'
-    method = 'POST'
     META = {'REMOTE_ADDR': '127.0.0.1'}
     path = 'fake_login_path'
     body = None
+    GET = POST = {}
 
-    def __init__(self, headers=None, user=None):
+    def __init__(
+        self, data=None, headers=None, user=None, method='POST', **kwargs
+    ):
+        if 'body' in kwargs:
+            self.body = kwargs['body']
+        if data is None:
+            data = {}
+
+        setattr(self, method, data)
         if headers:
             self.META.update(headers)
         if user:
@@ -82,5 +91,3 @@ class FakeClient(object):
 
     def post(self, view_func, data, headers=None, **kwargs):
         return self._gen_req(view_func, data, headers, **kwargs)
-
-

@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 import json
 
@@ -25,7 +25,7 @@ from seed.models import (
     save_snapshot_match,
 )
 from seed.views.main import DEFAULT_CUSTOM_COLUMNS
-from seed.utils import ASSESSOR_FIELDS
+from seed.utils.constants import ASSESSOR_FIELDS
 from seed.tests import util as test_util
 
 

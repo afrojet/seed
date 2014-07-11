@@ -1,8 +1,17 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 import warnings
+
+import uuid
+import hmac
+#sha1 used for api_key creation, but may vary by python version
+try:
+    from hashlib import sha1
+except ImportError:
+    import sha
+    sha1 = sha.sha
 
 from django.contrib.auth.models import (AbstractBaseUser,
                                         PermissionsMixin,
@@ -52,6 +61,13 @@ class SEEDUser(AbstractBaseUser, PermissionsMixin):
         blank=True,
         null=True,
         related_name='default_users'
+    )
+    api_key = models.CharField(
+        _('api key'),
+        max_length=128,
+        blank=True,
+        default='',
+        db_index=True
     )
 
     objects = UserManager()
@@ -118,6 +134,18 @@ class SEEDUser(AbstractBaseUser, PermissionsMixin):
             except (ImportError, ImproperlyConfigured):
                 raise SiteProfileNotAvailable
         return self._profile_cache
+
+    def generate_key(self):
+        """
+        Creates and sets an API key for this user.
+        Adapted from tastypie:
+
+        https://github.com/toastdriven/django-tastypie/blob/master/tastypie/models.py#L47  # noqa
+        """
+        new_uuid = uuid.uuid4()
+        api_key = hmac.new(new_uuid.bytes, digestmod=sha1).hexdigest()
+        self.api_key = api_key
+        self.save()
 
     def save(self, *args, **kwargs):
         """

@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 angular.module('BE.seed.controller.matching_detail', [])
 .controller('matching_detail_controller', [

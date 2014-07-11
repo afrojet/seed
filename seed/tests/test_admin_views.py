@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 import json
 
@@ -16,7 +16,7 @@ from superperms.orgs.models import (
     ROLE_OWNER, Organization, OrganizationUser
 )
 
-from seed.utils import create_organization
+from seed.utils.organizations import create_organization
 
 #Custom user model compatibility
 User = get_user_model()
@@ -27,13 +27,13 @@ class AdminViewsTest(TestCase):
     def setUp(self):
         admin_user_details = {'username': 'admin@testserver',
                               'email': 'admin@testserver',
-                              'password': 'admin_pass'}
+                              'password': 'admin_passS1'}
         self.admin_user = User.objects.create_superuser(**admin_user_details)
         self.client.login(**admin_user_details)
 
         user_details = {'username': 'testuser@testserver',
                         'email': 'testuser@testserver',
-                        'password': 'user_pass'}
+                        'password': 'user_passS1'}
         self.user = User.objects.create_user(**user_details)
 
         self.add_org_url = reverse_lazy('accounts:add_org')
@@ -192,8 +192,8 @@ class AdminViewsTest(TestCase):
         self.assertEqual(res.status_code, 200)
 
         #post the new password
-        password_post = {'new_password1': 'newpass',
-                         'new_password2': 'newpass'}
+        password_post = {'new_password1': 'newpassS2',
+                         'new_password2': 'newpassS2'}
 
         res = self.client.post(signup_url, data=password_post)
 
@@ -238,8 +238,8 @@ class AdminViewsTest(TestCase):
         self.assertEqual(res.status_code, 200)
 
         #post the new password
-        password_post = {'new_password1': 'newpass',
-                         'new_password2': 'newpass'}
+        password_post = {'new_password1': 'newpassS3',
+                         'new_password2': 'newpassS3'}
 
         res = self.client.post(signup_url, data=password_post)
 
@@ -253,7 +253,7 @@ class AdminViewsTest(TestCase):
         # test that login works
         resp = self.client.post(
             reverse('landing:login'),
-            {'email': data['email'], 'password': 'newpass'}
+            {'email': data['email'], 'password': 'newpassS3'}
         )
         # good logins will have 302 and no content
         user = User.objects.get(pk=user.pk)

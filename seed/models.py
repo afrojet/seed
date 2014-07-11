@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # system imports
 import json
@@ -11,7 +11,6 @@ from django.core import serializers
 from django.utils.translation import ugettext_lazy as _
 
 # vendor imports
-import dateutil
 from autoslug import AutoSlugField
 
 # provides created and modifed fields
@@ -26,6 +25,9 @@ from mcm import mapper
 from superperms.orgs.models import (
     Organization as SuperOrganization,
 )
+
+from seed.utils.time import convert_datestr
+
 
 PROJECT_NAME_MAX_LENGTH = 255
 
@@ -72,6 +74,61 @@ BS_VALUES_LIST = [
     'custom_id_1',
     'address_line_1',
 ]
+
+
+NATURAL_GAS = 1
+ELECTRICITY = 2
+FUEL_OIL = 3
+FUEL_OIL_NO_1 = 4
+FUEL_OIL_NO_2 = 5
+FUEL_OIL_NO_4 = 6
+FUEL_OIL_NO_5_AND_NO_6 = 7
+DISTRICT_STEAM = 8
+DISTRICT_HOT_WATER = 9
+DISTRICT_CHILLED_WATER = 10
+PROPANE = 11
+LIQUID_PROPANE = 12
+KEROSENE = 13
+DIESEL = 14
+COAL = 15
+COAL_ANTHRACITE = 16
+COAL_BITUMINOUS = 17
+COKE = 18
+WOOD = 19
+OTHER = 20
+
+
+ENERGY_TYPES = (
+    (NATURAL_GAS, 'Natural Gas'),
+    (ELECTRICITY, 'Electricity'),
+    (FUEL_OIL, 'Fuel Oil'),
+    (FUEL_OIL_NO_1, 'Fuel Oil No. 1'),
+    (FUEL_OIL_NO_2, 'Fuel Oil No. 2'),
+    (FUEL_OIL_NO_4, 'Fuel Oil No. 4'),
+    (FUEL_OIL_NO_5_AND_NO_6, 'Fuel Oil No. 5 and No. 6'),
+    (DISTRICT_STEAM, 'District Steam'),
+    (DISTRICT_HOT_WATER, 'District Hot Water'),
+    (DISTRICT_CHILLED_WATER, 'District Chilled Water'),
+    (PROPANE, 'Propane'),
+    (LIQUID_PROPANE, 'Liquid Propane'),
+    (KEROSENE, 'Kerosene'),
+    (DIESEL, 'Diesel'),
+    (COAL, 'Coal'),
+    (COAL_ANTHRACITE, 'Coal Anthracite'),
+    (COAL_BITUMINOUS, 'Coal Bituminous'),
+    (COKE, 'Coke'),
+    (WOOD, 'Wood'),
+    (OTHER, 'Other'),
+)
+
+
+KILOWATT_HOURS = 1
+THERMS = 2
+
+ENERGY_UNITS = (
+    (KILOWATT_HOURS, 'kWh'),
+    (THERMS, 'Therms'),
+)
 
 #
 ## Used in ``tasks.match_buildings``
@@ -281,6 +338,8 @@ def save_snapshot_match(
 
     new_snapshot.last_modified_by = user
 
+    new_snapshot.meters.add(*b1.meters.all())
+    new_snapshot.meters.add(*b2.meters.all())
     new_snapshot.super_organization = b1.super_organization
     new_snapshot.super_organization = b2.super_organization
 
@@ -373,7 +432,7 @@ def unmatch_snapshot_tree(building_pk):
 
 def _get_filtered_values(updated_values):
     """Breaks out mappable, meta and source BuildingSnapshot attributes."""
-    from seed import utils
+    from seed.utils.constants import META_FIELDS, EXCLUDE_FIELDS
     mappable_values = {}
     meta_values = {}
     source_values = {}
@@ -382,9 +441,9 @@ def _get_filtered_values(updated_values):
         value = updated_values[item]
         if item.endswith('_source'):
             source_values[item] = value
-        elif item in utils.META_FIELDS:
+        elif item in META_FIELDS:
             meta_values[item] = value
-        elif item not in utils.EXCLUDE_FIELDS:
+        elif item not in EXCLUDE_FIELDS:
             mappable_values[item] = value
 
     return mappable_values, meta_values, source_values
@@ -1008,7 +1067,7 @@ class BuildingSnapshot(TimeStampedModel):
         for field in date_field_names:
             value = getattr(self, field)
             if value and isinstance(value, basestring):
-                setattr(self, field, self.convert_datestr(value))
+                setattr(self, field, convert_datestr(value))
 
     def to_dict(self, fields=None):
         """
@@ -1027,13 +1086,6 @@ class BuildingSnapshot(TimeStampedModel):
         return u_repr.format(
             self.pk, self.pm_property_id, self.tax_lot_id, self.confidence
         )
-
-    def convert_datestr(self, datestr):
-        """Converts dates like `12/31/2010` into datetime objects."""
-        try:
-            return dateutil.parser.parse(datestr)
-        except (TypeError, ValueError):
-            return None
 
     @property
     def co_parent(self):
@@ -1111,4 +1163,25 @@ class BuildingAttributeVariant(models.Model):
     field_name = models.CharField(max_length=255)
     building_snapshot = models.ForeignKey(
         BuildingSnapshot, related_name='variants', null=True, blank=True
+    )
+
+
+class Meter(models.Model):
+    """Meter specific attributes."""
+    name = models.CharField(max_length=100)
+    building_snapshot = models.ManyToManyField(
+        BuildingSnapshot, related_name='meters', null=True, blank=True
+    )
+    energy_type = models.IntegerField(max_length=3, choices=ENERGY_TYPES)
+    energy_units = models.IntegerField(max_length=3, choices=ENERGY_UNITS)
+
+
+class TimeSeries(models.Model):
+    """For storing engergy use over time."""
+    begin_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    reading = models.FloatField(null=True)
+    cost = models.DecimalField(max_digits=11, decimal_places=4, null=True)
+    meter = models.ForeignKey(
+        Meter, related_name='timeseries_data', null=True, blank=True
     )

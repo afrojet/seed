@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from annoying.decorators import render_to
 from django.contrib import auth
@@ -11,7 +11,7 @@ from django.forms.util import ErrorList
 from django.forms.forms import NON_FIELD_ERRORS
 from django.http import HttpResponseRedirect
 
-from landing.forms import LoginForm
+from landing.forms import LoginForm, SetStrongPasswordForm
 
 import logging
 logger = logging.getLogger(__name__)
@@ -86,6 +86,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
         uidb64=uidb64,
         token=token,
         template_name='landing/password_reset_confirm.html',
+        set_password_form=SetStrongPasswordForm,
         post_reset_redirect=reverse('landing:password_reset_complete')
     )
 
@@ -101,5 +102,6 @@ def signup(request, uidb64=None, token=None):
         uidb64=uidb64,
         token=token,
         template_name='landing/signup.html',
+        set_password_form=SetStrongPasswordForm,
         post_reset_redirect=reverse('landing:landing_page') + "?setup_complete"
     )

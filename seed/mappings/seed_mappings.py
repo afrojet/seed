@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 """
 How to map dataset attributes to CanonicalBuilding.
@@ -11,7 +11,7 @@ AssessdBuilding_to_CanonicalBuilding, etc.)
 
 """
 
-from seed import utils
+from seed.utils.mapping import get_mappable_columns
 
 
 # Keys are destination attributes in our model
@@ -46,4 +46,4 @@ PortfolioRaw_to_BuildingSnapshot = (
 
 BuildingSnapshot_to_BuildingSnapshot = (
     #(u'import_records', map_import_records),
-) + tuple([(k, k) for k in utils.get_mappable_columns()])
+) + tuple([(k, k) for k in get_mappable_columns()])

@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # Django settings
 import os
@@ -269,3 +269,13 @@ NOSE_ARGS = ['--exclude-dir=libs/dal', '--exclude-dir=data_importer']
 # Matching Settings
 MATCH_MIN_THRESHOLD = 0.2
 MATCH_MED_THRESHOLD = 0.4
+
+
+# django-passwords settings: passwords should requre alphnumberic and 8
+# character minimum, with a minimum of 1 upper and 1 lower case character
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_COMPLEXITY = {
+    "UPPER": 1,       # at least 1 Uppercase
+    "LOWER": 1,       # at least 1 Lowercase
+    "DIGITS": 1,      # at least 1 Digit
+}

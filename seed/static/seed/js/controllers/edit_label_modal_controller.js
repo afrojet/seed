@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 angular.module('BE.seed.controller.edit_label_modal', [])
 .controller('edit_label_modal_ctrl', [

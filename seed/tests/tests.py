@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from unittest import skip
 
@@ -8,9 +8,11 @@ from landing.models import SEEDUser as User
 from django.test import TestCase
 
 from ..models import Project, Compliance, BuildingSnapshot, CanonicalBuilding
-from ..utils import (
-    create_organization, get_buildings_for_user, get_buildings_for_user_count
+from seed.utils.organizations import create_organization
+from seed.utils.buildings import (
+    get_buildings_for_user, get_buildings_for_user_count
 )
+
 from data_importer.models import ImportRecord
 
 class ProjectTestCase(TestCase):

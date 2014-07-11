@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # Chomsky random text generator, version 1.1, Raymond Hettinger, 2005/09/13 
 # PSF License

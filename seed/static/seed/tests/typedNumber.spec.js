@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 // create dummy angularJS app to attach filter(s)
 var myTypedNumberFilterApp = angular.module('myTypedNumberFilterApp', ['typedNumber']);

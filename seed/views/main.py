@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # system imports
 import json
@@ -21,7 +21,6 @@ from mcm import mapper
 
 # BE imports
 from data_importer.models import ImportFile, ImportRecord, ROW_DELIMITER
-from landing.models import SEEDUser as User
 
 from seed.tasks import (
     map_data,
@@ -44,9 +43,24 @@ from seed.models import (
 )
 from seed.views.accounts import _get_js_role
 from superperms.orgs.models import Organization, OrganizationUser
-from .. import utils
+from seed.utils.buildings import (
+    get_columns as utils_get_columns,
+    get_source_type,
+    get_search_query,
+    get_buildings_for_user as utils_get_buildings_for_user,
+    get_buildings_for_user_count
+)
+
+from seed.utils.projects import (
+    get_compliance_projects, update_buildings_with_labels
+)
+
+from seed.utils.time import convert_to_js_timestamp
+from seed.utils.mapping import get_mappable_types
+
 from .. import search
 from .. import exporter
+from seed.decorators import api_endpoint
 
 DEFAULT_CUSTOM_COLUMNS = [
     'project_id',
@@ -116,25 +130,31 @@ def home(request):
     return locals()
 
 
-@login_required
-@permission_required('seed.can_access_admin')
-@render_to('seed/admin.html')
-def admin(request):
-    return locals()
-
-
+@api_endpoint
 @ajax_request
 @login_required
 def export_buildings(request):
     """
-    Begins a building export process. Expects something like this:
-    {
-      "export_name": "My Export",
-      "export_type": "csv",
-      "selected_building": [ '1234', ... ],
-      "selected_fields": [ 'tax_lot_id', ... ], // optional, defaults to all
-      "select_all_checkbox": True // optional, defaults to False
-    }
+    Begins a building export process.
+
+    Payload::
+
+        {
+          "export_name": "My Export",
+          "export_type": "csv",
+          "selected_building": [1234,], (optional list of building ids)
+          "selected_fields": optional list of fields to export
+          "select_all_checkbox": True // optional, defaults to False
+        }
+
+    Returns::
+
+        {
+            "success": True,
+            "status": "success",
+            "export_id": export_id; see export_buildings_download,
+            "total_buildings": count of buildings,
+        }
     """
     body = json.loads(request.body)
 
@@ -150,12 +170,12 @@ def export_buildings(request):
     project_id = body.get('project_id')
 
     if not body.get('select_all_checkbox', False):
-        selected_buildings = utils.get_search_query(request.user, {})
+        selected_buildings = get_search_query(request.user, {})
         selected_buildings = selected_buildings.filter(
             pk__in=selected_building_ids
         )
     else:
-        selected_buildings = utils.get_search_query(request.user, body)
+        selected_buildings = get_search_query(request.user, body)
         selected_buildings = selected_buildings.exclude(
             pk__in=selected_building_ids
         )
@@ -210,12 +230,24 @@ def export_buildings(request):
     }
 
 
+@api_endpoint
 @ajax_request
 @login_required
 def export_buildings_progress(request):
     """
-    Returns current progress on building export
-    Expects: { "export_id": "1234" }
+    Returns current progress on building export process.
+
+    Payload::
+
+        {"export_id": export_id from export_buildings }
+
+    Returns::
+
+        {'success': True,
+         'status': 'success or error',
+         'message': 'error message, if any',
+         'buildings_processed': number of buildings exported
+        }
     """
     body = json.loads(request.body)
     export_id = body.get('export_id')
@@ -226,11 +258,24 @@ def export_buildings_progress(request):
     }
 
 
+@api_endpoint
 @ajax_request
 @login_required
 def export_buildings_download(request):
     """
-    Redirects to an export file
+    Provides the url to a building export file.
+
+    Payload::
+
+        {"export_id": export_id from export_buildings }
+
+    Returns::
+
+        {'success': True or False,
+         'status': 'success or error',
+         'message': 'error message, if any',
+         'url': The url to the exported file.
+        }
     """
     body = json.loads(request.body)
     export_id = body.get('export_id')
@@ -256,47 +301,9 @@ def export_buildings_download(request):
 
 @ajax_request
 @login_required
-def match_seed_record(request, import_record_pk):
-    """deprecated"""
-    pass
-
-
-@ajax_request
-@login_required
-def match_seed_record_progress(request, import_record_pk):
-    import_record = ImportRecord.objects.get(pk=import_record_pk)
-    pct = cache.get(import_record.match_progress_key)
-    return {"pct": pct}
-
-
-@ajax_request
-@login_required
-@permission_required('seed.can_access_admin')
-def get_users(request):
-    users = []
-    for u in User.objects.all():
-        users.append({'email': u.email, 'user_id': u.pk})
-
-    return {'users': users}
-
-
-@ajax_request
-@login_required
-@permission_required('seed.can_access_admin')
-def get_users_all(request):
-    users = []
-    for u in User.objects.all():
-        users.append({'email': u.email, 'user_id': u.pk})
-
-    return {'users': users}
-    return users
-
-
-@ajax_request
-@login_required
 def get_buildings_for_user(request):
     """gets all BuildingSnapshot inst. buildings a user has access to"""
-    buildings = utils.get_buildings_for_user(request.user)
+    buildings = utils_get_buildings_for_user(request.user)
     return {'status': 'success', 'buildings': buildings}
 
 
@@ -304,16 +311,44 @@ def get_buildings_for_user(request):
 @login_required
 def get_total_number_of_buildings_for_user(request):
     """gets a count of all buildings in the user's organaztions"""
-    buildings_count = utils.get_buildings_for_user_count(request.user)
+    buildings_count = get_buildings_for_user_count(request.user)
 
     return {'status': 'success', 'buildings_count': buildings_count}
 
 
+@api_endpoint
 @ajax_request
 @login_required
 @has_perm('requires_viewer')
 def get_building(request):
-    """gets a building"""
+    """
+    Retrieves a building. If user doesn't belong to the building's org,
+    fields will be masked to only those shared within the parent org's
+    structure.
+
+    :GET: Expects building_id and organization_id in query string.
+
+    Returns::
+
+        {
+             'status': 'success or error',
+             'message': 'error message, if any',
+             'building': {'id': the building's id,
+                          other fields this user has access to...
+             },
+             'imported_buildings': [ A list of buildings imported to create
+                                     this building's record, in the same
+                                     format as 'building'
+                                   ],
+             'compliance_projects': [ A list of compliance projects this
+                                      building has been involved in
+                                    ],
+             'user_role': role of user in this org,
+             'user_org_id': the org id this user belongs to
+        }
+
+    TODO:  Docstring needs elaboration on compliance_projects.
+    """
     building_id = request.GET.get('building_id')
     organization_id = request.GET.get('organization_id')
     org = Organization.objects.get(pk=organization_id)
@@ -325,19 +360,20 @@ def get_building(request):
         building.super_organization in user_orgs
         or parent_org in user_orgs
     ):
-        building_dict = building.to_dict()
+        exportable_field_names = None  # show all
     else:
         # User isn't in the parent org or the building's org,
         # so only show shared fields.
         exportable_fields = parent_org.exportable_fields
         exportable_field_names = exportable_fields.values_list('name',
                                                                flat=True)
-        building_dict = building.to_dict(exportable_field_names)
+
+    building_dict = building.to_dict(exportable_field_names)
 
     ancestors = get_ancestors(building)
     imported_buildings_list = []
     for b in ancestors:
-        d = b.to_dict()
+        d = b.to_dict(exportable_field_names)
         # get deleted import file names without throwing an error
         imp_file = ImportFile.raw_objects.get(pk=b.import_file_id)
         d['import_file_name'] = imp_file.filename_only
@@ -346,7 +382,7 @@ def get_building(request):
             imported_buildings_list.append(d)
     imported_buildings_list.sort(key=lambda x: x['source_type'])
 
-    projects = utils.get_compliance_projects(building, org)
+    projects = get_compliance_projects(building, org)
     ou = request.user.organizationuser_set.filter(
         organization=building.super_organization
     ).first()
@@ -373,13 +409,19 @@ def get_datasets_count(request):
     return {'status': 'success', 'datasets_count': datasets_count}
 
 
+@api_endpoint
 @ajax_request
 @login_required
 def search_buildings(request):
     """returns a paginated list of BuildingSnapshot inst. buildings matching
        search params and pagination params
+
+    TODO:  Needs API endpoint docstring.
     """
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body)
+    except ValueError:
+        body = {}
 
     q = body.get('q', '')
     other_search_params = body.get('filter_params', {})
@@ -443,11 +485,11 @@ def search_buildings(request):
     if other_search_params and 'project__slug' in other_search_params:
         project_slug = other_search_params['project__slug']
     if body.get('project_id'):
-        buildings = utils.update_buildings_with_labels(
+        buildings = update_buildings_with_labels(
             buildings, body.get('project_id'))
     elif project_slug:
         project_id = Project.objects.get(slug=project_slug).pk
-        buildings = utils.update_buildings_with_labels(buildings, project_id)
+        buildings = update_buildings_with_labels(buildings, project_id)
 
     return {
         'status': 'success',
@@ -544,7 +586,7 @@ def get_PM_building(request):
     building = b.__dict__.copy()
     for key, val in building.items():
         if type(val) == datetime.datetime or type(val) == datetime.date:
-            building[key] = utils.convert_to_js_timestamp(val)
+            building[key] = convert_to_js_timestamp(val)
     del(building['_state'])
     c = b.canonical_building
     if c and c.canonical_snapshot:
@@ -620,7 +662,7 @@ def get_columns(request):
         is_project = project.has_compliance
     else:
         is_project = False
-    return utils.get_columns(is_project)
+    return utils_get_columns(is_project)
 
 
 @ajax_request
@@ -696,7 +738,7 @@ def get_column_mapping_suggestions(request):
     body = json.loads(request.body)
     import_file = ImportFile.objects.get(pk=body.get('import_file_id'))
     result = {'status': 'success'}
-    column_types = utils.get_mappable_types()
+    column_types = get_mappable_types()
     suggested_mappings = mapper.build_column_mapping(
         import_file.first_row_columns,
         column_types.keys(),
@@ -776,7 +818,7 @@ def save_column_mappings(request):
     organization = import_file.import_record.super_organization
     mappings = body.get('mappings', [])
     # Because we store the ImportFile.source_type as a str, not an int..
-    source_type = utils.get_source_type(
+    source_type = get_source_type(
         import_file, source_type=body.get('source_type', '')
     )
 
@@ -880,7 +922,7 @@ def get_datasets(request):
             import_file__in=d.files,
             canonicalbuilding__active=True,
         ).count()
-        dataset['updated_at'] = utils.convert_to_js_timestamp(d.updated_at)
+        dataset['updated_at'] = convert_to_js_timestamp(d.updated_at)
         datasets.append(dataset)
 
     return {
@@ -942,7 +984,7 @@ def get_dataset(request):
     dataset['number_of_buildings'] = BuildingSnapshot.objects.filter(
         import_file__in=d.files
     ).count()
-    dataset['updated_at'] = utils.convert_to_js_timestamp(d.updated_at)
+    dataset['updated_at'] = convert_to_js_timestamp(d.updated_at)
 
     return {
         'status': 'success',

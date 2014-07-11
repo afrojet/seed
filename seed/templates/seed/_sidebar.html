@@ -2,8 +2,8 @@
 {# requires seed_menu_controller angularjs controller and menu_controller.js #}
     <div ng-class="{expanded: expanded_controller, collapsed: collapsed_controller, sidebar: true}">
         <div class="menu" ng-click="reset_search_field()">
-            <a ng-class="{item: true, active: is_active('/')}" href="{% url "seed:home" %}#/">
-                <div class="icon"><i class="fa fa-home"></i></div>
+            <a ng-class="{item: true, active: is_active('/profile')}" href="{% url "seed:home" %}#/profile">
+                <div class="icon"><i class="fa fa-cog"></i></div>
                 <div ng-show="!is_initial_state()" class="item_name">{$ username $}</div>
                 <div ng-show="!is_initial_state()" class="badge badge_menu" ng-click="href('{% url "landing:logout" %}')">Log Out</div>
             </a>
@@ -40,4 +40,3 @@
 
         </div>
     </div>
-   

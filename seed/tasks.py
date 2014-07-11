@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 import calendar
 import datetime
@@ -55,10 +55,11 @@ from seed.models import (
 )
 
 from seed.decorators import lock_and_track, get_prog_key, increment_cache
+from seed.utils.buildings import get_source_type, get_search_query
 
 from superperms.orgs.models import Organization
 
-from . import exporter, utils
+from . import exporter
 
 
 # Maximum number of possible matches under which we'll allow a system match.
@@ -178,7 +179,7 @@ def add_buildings(project_slug, project_dict, user_pk):
                 project=project, building_snapshot=ab
             )
     else:
-        query_buildings = utils.get_search_query(user, project_dict)
+        query_buildings = get_search_query(user, project_dict)
         denominator = query_buildings.count() - len(selected_buildings)
         cache.set(
             project.adding_buildings_status_percentage_cache_key,
@@ -297,7 +298,7 @@ def remove_buildings(project_slug, project_dict, user_pk):
                 project=project, building_snapshot=ab
             ).delete()
     else:
-        query_buildings = utils.get_search_query(user, project_dict)
+        query_buildings = get_search_query(user, project_dict)
         denominator = query_buildings.count() - len(selected_buildings)
         cache.set(
             project.adding_buildings_status_percentage_cache_key,
@@ -523,7 +524,7 @@ def _save_raw_data_chunk(chunk, file_pk, prog_key, increment, *args, **kwargs):
     """Save the raw data to the database."""
     import_file = ImportFile.objects.get(pk=file_pk)
     # Save our "column headers" and sample rows for F/E.
-    source_type = utils.get_source_type(import_file)
+    source_type = get_source_type(import_file)
     for c in chunk:
         raw_bs = BuildingSnapshot()
         raw_bs.import_file = import_file

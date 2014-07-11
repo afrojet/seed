@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 import json
 
@@ -486,6 +486,295 @@ class AccountsViewTests(TestCase):
         self.assertTrue('tax_lot_id' in fields)
         self.assertTrue('pm_property_id' in fields)
         self.assertEqual(len(fields), 2)
+
+    def test_update_user(self):
+        """test for update_user"""
+        user_data = {
+            'user': {
+                'first_name': 'bob',
+                'last_name': 'd',
+                'email': 'some@hgg.com'
+            }
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:update_user"),
+            json.dumps(user_data),
+            content_type='application/json',
+        )
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'success',
+                'user': {
+                    u'api_key': u'for the future',
+                    u'email': u'some@hgg.com',
+                    u'first_name': u'bob',
+                    u'last_name': u'd'
+                }
+            })
+
+    def test_get_user_profile(self):
+        """test for get_user_profile"""
+        resp = self.client.put(
+            reverse_lazy("accounts:get_user_profile"),
+            content_type='application/json',
+        )
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'success',
+                'user': {
+                    u'api_key': u'',
+                    u'email': u'test_user@demo.com',
+                    u'first_name': u'Johnny',
+                    u'last_name': u'Energy'
+                }
+            })
+        resp = self.client.post(
+            reverse_lazy("accounts:generate_api_key"),
+            content_type='application/json',
+        )
+        resp = self.client.put(
+            reverse_lazy("accounts:get_user_profile"),
+            content_type='application/json',
+        )
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'success',
+                'user': {
+                    u'api_key': User.objects.get(pk=self.user.pk).api_key,
+                    u'email': u'test_user@demo.com',
+                    u'first_name': u'Johnny',
+                    u'last_name': u'Energy'
+                }
+            })
+
+    def test_generate_api_key(self):
+        """test for generate_api_key
+            will pick up user.api_key when it's ready
+        """
+        resp = self.client.post(
+            reverse_lazy("accounts:generate_api_key"),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        api_key = user.api_key
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'success',
+                'api_key': api_key,
+            })
+
+    def test_set_password(self):
+        """test for set_password
+        """
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'new passwordD3',
+            'password_2': 'new passwordD3'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(user.check_password('new passwordD3'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'success',
+            })
+
+    def test_set_password_only_put(self):
+        """test for set_password only allowing put"""
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'new password',
+            'password_2': 'new password'
+        }
+        resp = self.client.post(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error', 'message': 'only HTTP PUT allowed',
+            })
+
+        resp = self.client.get(
+            reverse_lazy("accounts:set_password"),
+            password_payload,
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error', 'message': 'only HTTP PUT allowed',
+            })
+
+    def test_set_password_error_messages(self):
+        """test for set_password produces proper messages"""
+        # check current password is invalid
+        password_payload = {
+            'current_password': 'test_pass INVALID',
+            'password_1': 'new password',
+            'password_2': 'new password'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error', 'message': 'current password is not valid',
+            })
+        # check passwords don't match
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'new password',
+            'password_2': 'non matching password'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error', 'message': 'entered password do not match',
+            })
+
+    def test_set_password_meets_password_reqs(self):
+        """test for set_password meets password reqs"""
+        # check new password is less than 8 chars
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'new1234',
+            'password_2': 'new1234'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error',
+                'message': 'Invalid Length (Must be 8 characters or more)',
+            })
+        # check new password is has uppercase letters
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'newnewnew',
+            'password_2': 'newnewnew'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error',
+                'message': (
+                    'Must be more complex (Must contain 1 or more uppercase '
+                    'characters)'
+                ),
+            })
+        # check new password is has lowercase letters
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'NEWNEWNEW',
+            'password_2': 'NEWNEWNEW'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error',
+                'message': (
+                    'Must be more complex (Must contain 1 or more lowercase '
+                    'characters)'
+                ),
+            })
+        # check new password is has alphanumeric letters
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': 'nNEWNEWNEW',
+            'password_2': 'nNEWNEWNEW'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error',
+                'message': (
+                    'Must be more complex (Must contain 1 or more digits)'
+                ),
+            })
+        password_payload = {
+            'current_password': 'test_pass',
+            'password_1': '12345678',
+            'password_2': '12345678'
+        }
+        resp = self.client.put(
+            reverse_lazy("accounts:set_password"),
+            json.dumps(password_payload),
+            content_type='application/json',
+        )
+        user = User.objects.get(pk=self.user.pk)
+        self.assertFalse(user.check_password('new password'))
+
+        self.assertEquals(
+            json.loads(resp.content),
+            {
+                'status': 'error',
+                'message': 'Based on a common sequence of characters',
+            })
 
 
 class AuthViewTests(TestCase):

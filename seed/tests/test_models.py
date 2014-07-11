@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 from datetime import datetime
 
@@ -19,24 +19,24 @@ class TestBuildingSnapshot(TestCase):
     """Test the clean methods on BuildingSnapshotModel."""
 
     bs1_data = {
-       'pm_property_id': 1243,
-       'tax_lot_id': '435/422',
-       'property_name': 'Greenfield Complex',
-       'custom_id_1': 1243,
-       'address_line_1': '555 Database LN.',
-       'address_line_2': '',
-       'city': 'Gotham City',
-       'postal_code': 8999,
+        'pm_property_id': 1243,
+        'tax_lot_id': '435/422',
+        'property_name': 'Greenfield Complex',
+        'custom_id_1': 1243,
+        'address_line_1': '555 Database LN.',
+        'address_line_2': '',
+        'city': 'Gotham City',
+        'postal_code': 8999,
     }
     bs2_data = {
-       'pm_property_id': 9999,
-       'tax_lot_id': '1231',
-       'property_name': 'A Place',
-       'custom_id_1': 0000111000,
-       'address_line_1': '44444 Hmmm Ave.',
-       'address_line_2': 'Apt 4',
-       'city': 'Gotham City',
-       'postal_code': 8999,
+        'pm_property_id': 9999,
+        'tax_lot_id': '1231',
+        'property_name': 'A Place',
+        'custom_id_1': 0000111000,
+        'address_line_1': '44444 Hmmm Ave.',
+        'address_line_2': 'Apt 4',
+        'city': 'Gotham City',
+        'postal_code': 8999,
     }
 
     def setUp(self):
@@ -61,6 +61,12 @@ class TestBuildingSnapshot(TestCase):
         self.bs2 = util.make_fake_snapshot(
             self.import_file2, self.bs2_data, bs_type=seed_models.PORTFOLIO_BS
         )
+        self.meter = seed_models.Meter.objects.create(
+            name='test meter',
+            energy_type=seed_models.ELECTRICITY,
+            energy_units=seed_models.KILOWATT_HOURS
+        )
+        self.meter.building_snapshot.add(self.bs2)
 
     def _add_additional_fake_buildings(self):
         """DRY up some test code below where many BSes are needed."""
@@ -76,7 +82,9 @@ class TestBuildingSnapshot(TestCase):
 
     def _test_year_month_day_equal(self, test_dt, expected_dt):
         for attr in ['year', 'month', 'day']:
-            self.assertEqual(getattr(test_dt, attr), getattr(expected_dt, attr))
+            self.assertEqual(
+                getattr(test_dt, attr), getattr(expected_dt, attr)
+            )
 
     def test_clean(self):
         """Make sure we convert datestrings properly."""
@@ -95,8 +103,9 @@ class TestBuildingSnapshot(TestCase):
 
         self._test_year_month_day_equal(bs_model.year_ending, expected_value)
         self._test_year_month_day_equal(bs_model.release_date, expected_value)
-        self._test_year_month_day_equal(bs_model.generation_date, expected_value)
-
+        self._test_year_month_day_equal(
+            bs_model.generation_date, expected_value
+        )
 
     def test_source_attributions(self):
         """Test that we can point back to an attribute's source.
@@ -120,11 +129,10 @@ class TestBuildingSnapshot(TestCase):
         bs2.save()
 
         self.assertEqual(bs2.year_ending_source, bs1)
-        self.assertEqual(bs2.property_name_source, bs2) # We don't inherit.
-
+        self.assertEqual(bs2.property_name_source, bs2)  # We don't inherit.
 
     def test_create_child(self):
-        """Test that we can create a child BS, it has a reference to its parent."""
+        """Child BS has reference to parent."""
 
         bs1 = seed_models.BuildingSnapshot.objects.create()
         bs2 = seed_models.BuildingSnapshot.objects.create()
@@ -157,7 +165,7 @@ class TestBuildingSnapshot(TestCase):
         org1 = Organization.objects.create()
         org2 = Organization.objects.create()
 
-        column_mapping1 = seed_models.ColumnMapping.objects.create(
+        seed_models.ColumnMapping.objects.create(
             super_organization=org2,
             source_type=seed_models.ASSESSED_RAW,
             column_raw=raw_column,
@@ -229,6 +237,9 @@ class TestBuildingSnapshot(TestCase):
         self.assertEqual(result.property_name, self.bs1.property_name)
         self.assertEqual(result.property_name_source, self.bs1)
 
+        # Ensure that we transfer the meter relationship to merged children.
+        self.assertEqual([r.pk for r in result.meters.all()], [self.meter.pk])
+
         # Test that all the parent/child relationships are sorted.
         self.assertEqual(result.confidence, 0.9)
         self.assertEqual(
@@ -267,7 +278,6 @@ class TestBuildingSnapshot(TestCase):
 
         self.assertDictEqual(test_extra, expected_extra)
         self.assertDictEqual(test_sources, expected_sources)
-
 
     def test_update_building(self):
         """Good case for updating a building."""
@@ -440,7 +450,7 @@ class TestBuildingSnapshot(TestCase):
         can.save()
 
         new_can = seed_models.CanonicalBuilding.objects.create(
-            canonical_snapshot = self.bs2
+            canonical_snapshot=self.bs2
         )
         self.bs2.canonical_building = new_can
         self.bs2.save()
@@ -451,14 +461,18 @@ class TestBuildingSnapshot(TestCase):
         seed_models.unmatch_snapshot_tree(self.bs1.pk)
 
         refreshed_can = seed_models.CanonicalBuilding.objects.get(pk=can.pk)
-        refreshed_bs1 = seed_models.BuildingSnapshot.objects.get(pk=self.bs1.pk)
+        refreshed_bs1 = seed_models.BuildingSnapshot.objects.get(
+            pk=self.bs1.pk
+        )
 
         # Our unmerged snapshot reactivates its canonical building
         self.assertEqual(refreshed_can.canonical_snapshot, self.bs1)
         self.assertEqual(refreshed_bs1.canonical_building, refreshed_can)
 
         # Newly remerged snapshot gets the original CanonicalBuilding
-        refreshed_bs3 = seed_models.BuildingSnapshot.objects.get(pk=self.bs3.pk)
+        refreshed_bs3 = seed_models.BuildingSnapshot.objects.get(
+            pk=self.bs3.pk
+        )
         self.assertEqual(refreshed_bs3.canonical_building, new_can)
 
     def test_unmatch_snapshot_tree_common_case(self):
@@ -488,8 +502,12 @@ class TestBuildingSnapshot(TestCase):
         self.assertEqual(self.bs1.children.count(), 0)
         self.assertEqual(self.bs2.children.count(), 0)
 
-        refreshed_bs1 = seed_models.BuildingSnapshot.objects.get(pk=self.bs1.pk)
-        refreshed_bs2 = seed_models.BuildingSnapshot.objects.get(pk=self.bs2.pk)
+        refreshed_bs1 = seed_models.BuildingSnapshot.objects.get(
+            pk=self.bs1.pk
+        )
+        refreshed_bs2 = seed_models.BuildingSnapshot.objects.get(
+            pk=self.bs2.pk
+        )
         # Both of our parents have canonical_buildings.
         self.assertNotEqual(refreshed_bs1.canonical_building, None)
         self.assertNotEqual(refreshed_bs2.canonical_building, None)

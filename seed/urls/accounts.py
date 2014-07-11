@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 #!/usr/bin/env python
 # encoding: utf-8
@@ -85,6 +85,26 @@ urlpatterns = patterns(
         r'^set_default_organization/$',
         'set_default_organization',
         name='set_default_organization'
+    ),
+    url(
+        r'^get_user_profile/$',
+        'get_user_profile',
+        name='get_user_profile'
+    ),
+    url(
+        r'^generate_api_key/$',
+        'generate_api_key',
+        name='generate_api_key'
+    ),
+    url(
+        r'^update_user/$',
+        'update_user',
+        name='update_user'
+    ),
+    url(
+        r'^set_password/$',
+        'set_password',
+        name='set_password'
     ),
     url(r'^get_users/$', 'get_users', name='get_users'),
 )

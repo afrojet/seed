@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 #!/usr/bin/env python
 # encoding: utf-8
@@ -40,6 +40,12 @@ urlpatterns = patterns(
 
     # app section
     url(r'app/', include('seed.urls.main', namespace="seed", app_name="seed")),
+
+    # api section
+    url(r'app/api/', include(
+        'seed.urls.api',
+        namespace="api",
+        app_name="api")),
 
     # dataset section
     url(r'^data/', include(

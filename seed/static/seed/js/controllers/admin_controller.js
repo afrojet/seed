@@ -1,6 +1,6 @@
 /**
  * :copyright: (c) 2014 Building Energy Inc
- * :license: BSD 3-Clause, see LICENSE for more details.
+ * :license: see LICENSE for more details.
  */
 angular.module('BE.seed.controller.admin', [])
 .controller('seed_admin_controller', [
@@ -8,7 +8,8 @@ angular.module('BE.seed.controller.admin', [])
   'user_service',
   'organization_service',
   'uploader_service',
-  function($scope, user_service, organization_service, uploader_service) {
+  'user_profile_payload',
+  function($scope, user_service, organization_service, uploader_service, user_profile_payload) {
     $scope.user = {};
     $scope.temp_users = [];
     $scope.org = {};
@@ -22,6 +23,8 @@ angular.module('BE.seed.controller.admin', [])
     $scope.alert.bootstrap_class.ok = 'alert-success';
     $scope.alert.bootstrap_class.error = 'alert-danger';
     $scope.alert.css = $scope.alert.bootstrap_class.ok;
+    $scope.username = user_profile_payload.user.first_name + " " + 
+        user_profile_payload.user.last_name;
 
 
     var update_alert = function (is_ok, message) {

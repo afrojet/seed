@@ -76,7 +76,7 @@ exclude_patterns = ['*migrations']
 #default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+#add_function_parentheses = False
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
@@ -258,3 +258,66 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# formatters for API autodocumentation
+from seed.utils import get_api_endpoints
+api_endpoints = get_api_endpoints()
+
+endpoints_by_function = {fn.func_name: url
+                         for url, fn in api_endpoints.items()}
+
+
+def skip_non_api_methods(app, what, name, obj, skip, options):
+    """
+    Callback function for sphinx, to skip functions in modules linked
+    from api.rst that don't have is_api_endpoint set.
+    """
+    if app.env.docname != 'api':  # only apply this to api.rst
+        return skip
+    # if is_api_endpoint is True, don't skip (i.e. return False)
+    is_api_endpoint = getattr(obj, 'is_api_endpoint', False)
+    if is_api_endpoint:
+        return False  # don't skip api endpoints
+    return True  # skip everything else
+
+
+def format_api_docstring(app, what, name, obj, options, lines):
+    """
+    Replaces sphinx's default docstring formatting for API endpoints.
+
+    Note that sphinx expects lines to be modified in-place.
+    """
+    if app.env.docname != 'api':
+        return  # do nothing
+
+    if what != 'function':
+        while lines:
+            lines.pop()  # modify lines in-place
+        return
+
+    name = name.split('.')[-1]
+
+    if name in endpoints_by_function:
+        url_line = ":URI: %s" % endpoints_by_function[name]
+        lines.insert(0, url_line)
+
+
+def format_api_signature(
+        app, what, name, obj, options, signature, return_annotation
+    ):
+    """
+    Clean up signatures for api endpoints.
+    """
+    if app.env.docname != 'api':
+        return (signature, return_annotation)
+
+    return (None, return_annotation)
+
+
+def setup(app):
+    """
+    Called by sphinx to hook up event handlers.
+    """
+    app.connect("autodoc-skip-member", skip_non_api_methods)
+    app.connect("autodoc-process-docstring", format_api_docstring)
+    app.connect("autodoc-process-signature", format_api_signature)

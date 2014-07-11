@@ -17,7 +17,7 @@ test:
         - echo "pre"
     override:
         - coverage run manage.py test --settings=BE.settings.ci
-        - coverage report --fail-under=83
+        - coverage report --fail-under=84
         - bin/parallel_harvest_tests.sh:
             parallel: true
         - flake8

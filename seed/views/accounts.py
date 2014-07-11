@@ -1,6 +1,6 @@
 """
 :copyright: (c) 2014 Building Energy Inc
-:license: BSD 3-Clause, see LICENSE for more details.
+:license: see LICENSE for more details.
 """
 # system imports
 import json
@@ -8,10 +8,10 @@ import json
 # django imports
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 
 # vendor imports
 from annoying.decorators import ajax_request
-
 from superperms.orgs.decorators import has_perm, PERMS
 from superperms.orgs.exceptions import TooManyNestedOrgs
 from superperms.orgs.models import (
@@ -21,8 +21,12 @@ from superperms.orgs.models import (
     Organization,
     OrganizationUser,
 )
+from passwords.validators import (
+    validate_length, common_sequences, dictionary_words, complexity
+)
 
-from seed.utils import create_organization, ASSESSOR_FIELDS_BY_COLUMN
+from seed.utils.organizations import create_organization
+from seed.utils.constants import ASSESSOR_FIELDS_BY_COLUMN
 
 # app imports
 from seed.models import CanonicalBuilding
@@ -30,6 +34,7 @@ from landing.models import SEEDUser as User
 from seed.tasks import (
     invite_to_seed,
 )
+from seed.decorators import api_endpoint
 
 
 def _dict_org(request, organizations):
@@ -105,10 +110,38 @@ def _get_role_from_js(role):
     return roles[role]
 
 
+@api_endpoint
 @ajax_request
 @login_required
 def get_organizations(request):
-    """returns a list of organizations for the request user"""
+    """
+    Retrieves all orgs the user has access to.
+
+    Returns::
+
+        {'organizations': [
+            {'name': org name,
+             'org_id': org's identifier (used with Authorization header),
+             'id': org's identifier,
+             'number_of_users': count of members of org,
+             'user_is_owner': True if the user is owner of this org,
+             'user_role': The role of user in this org (owner, viewer, member),
+             'owners': [
+                         {
+                          'first_name': the owner's first name,
+                          'last_name': the owner's last name,
+                          'email': the owner's email address,
+                          'id': the owner's identifier (int)
+                         }
+                       ]
+             'sub_orgs': [ a list of orgs having this org as parent, in
+                        the same format...],
+             'is_parent': True if this org contains suborgs,
+             'num_buildings': Count of buildings belonging to this org
+            }...
+           ]
+        }
+    """
     if request.user.is_superuser:
         qs = Organization.objects.all()
     else:
@@ -117,11 +150,41 @@ def get_organizations(request):
     return {'organizations': _dict_org(request, qs)}
 
 
+@api_endpoint
 @ajax_request
 @login_required
 @has_perm('requires_member')
 def get_organization(request):
-    """returns an organization"""
+    """
+    Retrieves a single organization by id.
+
+    :GET: Expects ?organization_id=(:org_id)
+
+    Returns::
+
+        {'status': 'success or error', 'message': 'error message, if any',
+         'organization':
+            {'name': org name,
+             'org_id': org's identifier (used with Authorization header),
+             'id': org's identifier,
+             'number_of_users': count of members of org,
+             'user_is_owner': True if the user is owner of this org,
+             'user_role': The role of user in this org (owner, viewer, member),
+             'owners': [
+                 {
+                  'first_name': the owner's first name,
+                  'last_name': the owner's last name,
+                  'email': the owner's email address,
+                  'id': the owner's identifier (int)
+                  }
+                 ]
+              'sub_orgs': [ a list of orgs having this org as parent, in
+                            the same format...],
+              'is_parent': True if this org contains suborgs,
+              'num_buildings': Count of buildings belonging to this org
+            }
+        }
+    """
     org_id = request.GET.get('organization_id', None)
     if org_id is None:
         return {
@@ -156,11 +219,32 @@ def get_organization(request):
     }
 
 
+@api_endpoint
 @ajax_request
 @login_required
 @has_perm('requires_member')
 def get_organizations_users(request):
-    """gets users for an org
+    """
+    Retrieve all users belonging to an org.
+
+    Payload::
+
+        {'organization_id': org_id}
+
+    Returns::
+
+        {'status': 'success',
+         'users': [
+            {
+             'first_name': the user's first name,
+             'last_name': the user's last name,
+             'email': the user's email address,
+             'id': the user's identifier (int),
+             'role': the user's role ('owner', 'member', 'viewer')
+            }
+          ]
+        }
+
     TODO(ALECK/GAVIN): check permissions that request.user is owner or admin
     and get more info about the users.
     """
@@ -342,17 +426,26 @@ def get_users(request):
     return {'users': users}
 
 
+@api_endpoint
 @ajax_request
 @login_required
 @has_perm('requires_owner')
 def update_role(request):
-    """updates a SEED user's role
-    json payload in the form:
-    {
-        u'organization_id': 1,
-        u'user_id': 2,
-        u'role': u'member'
-    }
+    """
+    Sets a user's role within an organization.
+
+    Payload::
+
+        {
+            'organization_id': organization's id,
+            'user_id': user's id,
+            'role': one of 'owner', 'member', 'viewer'
+        }
+
+    Returns::
+
+        {'status': 'success or error',
+         'message': 'error message, if any'}
     """
     body = json.loads(request.body)
     role = _get_role_from_js(body['role'])
@@ -365,52 +458,44 @@ def update_role(request):
     return {'status': 'success'}
 
 
+@api_endpoint
 @ajax_request
 @login_required
 @has_perm('requires_owner')
 def save_org_settings(request):
-    """saves and organzations settings: name, query threshold, shared fields
+    """
+    Saves an organzation's settings: name, query threshold, shared fields
 
-    for the fields ``checked`` indicates that the field has been selected
-    json payload in the form:
-    {
-        u'organization_id: 2,
-        u'organization': {
-            u'owners': [...],
-            u'query_threshold': 2,
-            u'name': u'demo org',
-            u'fields': [
-                {
-                    u'field_type': u'building_information',
-                    u'sortable': True,
-                    u'title': u'PM Property ID',
-                    u'sort_column': u'pm_property_id',
-                    u'class': u'is_aligned_right',
-                    u'link': True,
-                    u'checked': True,
-                    u'static': False,
-                    u'type': u'link',
-                    u'title_class': u''
-                },
-                {
-                    u'field_type': u'building_information',
-                    u'sortable': True,
-                    u'title': u'Tax Lot ID',
-                    u'sort_column': u'tax_lot_id',
-                    u'class': u'is_aligned_right',
-                    u'link': True,
-                    u'checked': True,
-                    u'static': False,
-                    u'type': u'link',
-                    u'title_class': u''
-                }
-            ],
-            u'org_id': 2,
-            u'user_is_owner': True,
-            u'number_of_users': 4,
-            u'id': 2
+    Payload::
+
+        {
+            'organization_id: 2,
+            'organization': {
+                'query_threshold': 2,
+                'name': 'demo org',
+                'fields': [  # All fields
+                    {
+                        'field_type': 'building_information',
+                        'sortable': True,
+                        'title': 'PM Property ID',
+                        'sort_column': 'pm_property_id',
+                        'class': 'is_aligned_right',
+                        'link': True,
+                        'checked': True,  # True if field is selected
+                        'static': False,
+                        'type': 'link',
+                        'title_class': ''
+                    }
+                ],
+            }
         }
-    }
+
+    Returns::
+
+        {
+            'status': 'success or error',
+            'message': 'error message, if any'
+        }
     """
     body = json.loads(request.body)
     org = Organization.objects.get(pk=body['organization_id'])
@@ -638,5 +723,137 @@ def set_default_organization(request):
     body = json.loads(request.body)
     org = body['organization']
     request.user.default_organization_id = org['id']
+    request.user.save()
+    return {'status': 'success'}
+
+
+@ajax_request
+@login_required
+def get_user_profile(request):
+    """gets the user's first_name, last_name, email, and api key if exists
+
+    Returns::
+
+        {
+            'status': 'success',
+            'user': {
+                'first_name': user's first name,
+                'last_name': user's last name,
+                'email': user's email,
+                'api_key': user's API key
+            }
+        }
+    """
+    return {
+        'status': 'success',
+        'user': {
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'email': request.user.email,
+            'api_key': request.user.api_key,
+        }
+    }
+
+
+@ajax_request
+@login_required
+def generate_api_key(request):
+    """generates a new API key
+
+    Returns::
+
+        {
+            'status': 'success',
+            'api_key': the new api key
+        }
+    """
+    request.user.generate_key()
+    return {
+        'status': 'success',
+        'api_key': User.objects.get(pk=request.user.pk).api_key
+    }
+
+
+@ajax_request
+@login_required
+def update_user(request):
+    """updates a user's first name, last name, and or email
+
+    :PUT: {
+        'user': {
+                'first_name': :first_name,
+                'last_name': :last_name,
+                'email': :email
+            }
+    }
+
+    Returns::
+
+        {
+            'status': 'success',
+            'user': {
+                'first_name': user's first name,
+                'last_name': user's last name,
+                'email': user's email,
+                'api_key': user's API key
+            }
+        }
+    """
+    body = json.loads(request.body)
+    user = body.get('user')
+    request.user.first_name = user.get('first_name')
+    request.user.last_name = user.get('last_name')
+    request.user.email = user.get('email')
+    request.user.username = user.get('email')
+    request.user.save()
+    return {
+        'status': 'success',
+        'user': {
+            'first_name': request.user.first_name,
+            'last_name': request.user.last_name,
+            'email': request.user.email,
+            'api_key': 'for the future',
+        }
+    }
+
+
+@ajax_request
+@login_required
+def set_password(request):
+    """sets/updates a user's password, follows the min requiremnent of
+    django-passwords settings in BE/settings/common.py
+
+    :PUT: {
+            'current_password': current_password,
+            'password_1': password_1,
+            'password_2': password_2
+    }
+
+    Returns::
+
+        {
+            'status': 'success'
+        }
+    """
+    default_validators = [
+        validate_length, common_sequences, dictionary_words, complexity
+    ]
+    if request.method != 'PUT':
+        return {'status': 'error', 'message': 'only HTTP PUT allowed'}
+    body = json.loads(request.body)
+    current_password = body.get('current_password')
+    p1 = body.get('password_1')
+    p2 = body.get('password_2')
+    if not request.user.check_password(current_password):
+        return {'status': 'error', 'message': 'current password is not valid'}
+    if p1 is None or p1 != p2:
+        return {'status': 'error', 'message': 'entered password do not match'}
+    # validate password from django-password settings
+    for validator in default_validators:
+        try:
+            validator(p2)
+        except ValidationError, e:
+            return {'status': 'error', 'message': e.message}
+    request.user.set_password(p1)
     request.user.save()
     return {'status': 'success'}
