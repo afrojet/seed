@@ -15,7 +15,7 @@
 import sys
 import os
 # sets the default settings module for read the docs
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BE.settings.main")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BE.settings.dev")
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
