@@ -1,7 +1,7 @@
 Standard Energy Efficiency Data Platform (SEED)
 ===============================================
 
-`Github project page <https://github.com/buildingenergy/seed-core>`_
+`Github project page <https://github.com/buildingenergy/seed>`_
 
 Getting Started:
 
